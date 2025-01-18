@@ -12,3 +12,7 @@ fileReadStream.on("data", (chunk) => {
 fileReadStream.on("end", () => {
     console.log(text);
 });
+
+fileReadStream.on("error", (err) => {
+    console.error("Error reading file:", err.message);
+});
