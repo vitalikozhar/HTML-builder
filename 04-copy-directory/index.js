@@ -1,55 +1,37 @@
 const path = require('path');
 const fs = require('fs');
-
 const oldFold = path.join(__dirname, 'files');
 const newFold = path.join(__dirname, 'files-copy');
 
-fs.mkdir(newFold, { recursive: true }, (err) => {
-  if (err) {
-    return console.error('Error creating directory:', err);
-  }
-
-  fs.readdir(oldFold, { withFileTypes: true }, (err, oldItems) => {
+if (fs.existsSync(newFold)) {
+  fs.rm(newFold, { recursive: true }, (err) => {
     if (err) {
-      return console.error('Error reading "files" directory:', err);
+      console.error(err);
+      return;
     }
+    copyFolder();
+  });
+} else {
+  copyFolder();
+}
 
-    fs.readdir(newFold, { withFileTypes: true }, (err, newItems) => {
+function copyFolder() {
+  fs.mkdir(newFold, { recursive: true }, () => {
+    fs.readdir(oldFold, { withFileTypes: true }, (err, items) => {
       if (err) {
-        return console.error('Error reading "files-copy" directory:', err);
-      }
-      const oldFileNames = oldItems
-        .filter((item) => item.isFile())
-        .map((item) => item.name);
-      const newFileNames = newItems
-        .filter((item) => item.isFile())
-        .map((item) => item.name);
+        console.log('Error: Folder not found or cannot be read:', err);
+      } else {
+        for (const item of items) {
+          const oldLink = path.join(oldFold, item.name);
+          const newLink = path.join(newFold, item.name);
 
-      for (const newFile of newFileNames) {
-        if (!oldFileNames.includes(newFile)) {
-          const fileToDelete = path.join(newFold, newFile);
-          fs.unlink(fileToDelete, (err) => {
-            if (err) {
-              console.error(`Error deleting file "${newFile}":`, err);
-            } else {
-              console.log(`File "${newFile}" deleted from "files-copy".`);
-            }
-          });
-        }
-      }
-      for (const oldFile of oldItems) {
-        if (oldFile.isFile()) {
-          const oldLink = path.join(oldFold, oldFile.name);
-          const newLink = path.join(newFold, oldFile.name);
-          fs.copyFile(oldLink, newLink, (err) => {
-            if (err) {
-              console.error(`Error copying file "${oldFile.name}":`, err);
-            } else {
-              console.log(`File "${oldFile.name}" copied to "files-copy".`);
-            }
-          });
+          if (item.isFile()) {
+            fs.copyFile(oldLink, newLink, () => {
+              console.log(`File "${item.name}" has been successfully copied.`);
+            });
+          }
         }
       }
     });
   });
-});
+}
