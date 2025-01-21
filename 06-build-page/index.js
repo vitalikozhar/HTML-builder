@@ -16,6 +16,7 @@ const pathComponents = path.join(__dirname, 'components');
   await changeTags('{{header}}');
   await changeTags('{{articles}}');
   await changeTags('{{footer}}');
+  await changeTags('{{about}}');
 })();
 
 async function changeTags(tag) {
